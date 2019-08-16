@@ -66,6 +66,12 @@ CompositorContext::ScopedFrame::~ScopedFrame() {
 RasterStatus CompositorContext::ScopedFrame::Raster(
     flutter::LayerTree& layer_tree,
     bool ignore_raster_cache) {
+  return DoRaster(layer_tree, ignore_raster_cache);
+}
+
+RasterStatus CompositorContext::ScopedFrame::DoRaster(
+    flutter::LayerTree& layer_tree,
+    bool ignore_raster_cache) {
   layer_tree.Preroll(*this, ignore_raster_cache);
   PostPrerollResult post_preroll_result = PostPrerollResult::kSuccess;
   if (view_embedder_ && gpu_thread_merger_) {

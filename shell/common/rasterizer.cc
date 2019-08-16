@@ -16,6 +16,8 @@
 #include "third_party/skia/include/core/SkSurfaceCharacterization.h"
 #include "third_party/skia/include/utils/SkBase64.h"
 
+#include <trace/event.h>
+
 namespace flutter {
 
 // The rasterizer will tell Skia to purge cached resources that have not been
@@ -177,6 +179,15 @@ RasterStatus Rasterizer::DoDraw(
     persistent_cache->DumpSkp(*screenshot.data);
   }
 
+  if (TRACE_CATEGORY_ENABLED("flutter:dumpskp")) {
+    auto screenshot =
+        ScreenshotLastLayerTree(ScreenshotType::SkiaPicture, /*base64_encode=*/false);
+    const auto& data = *screenshot.data;
+    const auto& frame = screenshot.frame_size;
+    TRACE_BLOB_EVENT("flutter:dumpskp", "cc::Picture", data.bytes(), data.size(),
+        "width", TA_INT32(frame.width()), "height", TA_INT32(frame.height()));
+  }
+
   // TODO(liyuqian): in Fuchsia, the rasterization doesn't finish when
   // Rasterizer::DoDraw finishes. Future work is needed to adapt the timestamp
   // for Fuchsia to capture SceneUpdateContext::ExecutePaintTasks.
@@ -295,7 +306,7 @@ static sk_sp<SkData> ScreenshotLayerTreeAsPicture(
       nullptr, recorder.getRecordingCanvas(), nullptr,
       root_surface_transformation, false, nullptr);
 
-  frame->Raster(*tree, true);
+  frame->DoRaster(*tree, true);
 
   SkSerialProcs procs = {0};
   procs.fTypefaceProc = SerializeTypeface;

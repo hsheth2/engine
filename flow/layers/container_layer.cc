@@ -42,9 +42,10 @@ void ContainerLayer::PaintChildren(PaintContext& context) const {
   // Intentionally not tracing here as there should be no self-time
   // and the trace event on this common function has a small overhead.
   for (auto& layer : layers_) {
-    if (layer->needs_painting()) {
+    // Huge hack, need to figure out a cleaner way to do this.
+    // if (layer->needs_painting()) {
       layer->Paint(context);
-    }
+    // }
   }
 }
 
